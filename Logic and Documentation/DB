@@ -1,0 +1,60 @@
+CREATE TABLE Player(
+	pID BIGINT NOT NULL,
+	username varchar(55) NOT NULL,
+	regTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	elo int NOT NULL DEFAULT 100,
+	PRIMARY KEY(pID)
+);
+CREATE TABLE Team(
+	teamNumber int NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY (teamNumber)
+);
+CREATE TABLE Plays(
+	pID BIGINT NOT NULL,
+	teamNumber int NOT NULL,
+	FOREIGN KEY (pID) REFERENCES Player(pID)
+	ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (teamNumber) REFERENCES Team (teamNumber)
+	ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE TABLE `Match`(
+	mID int NOT NULL AUTO_INCREMENT,
+	map varchar(55) NOT NULL,
+	team1 int NOT NULL,
+	team2 int NOT NULL,
+	winningTeam int,
+	startTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	endTime TIMESTAMP,
+	PRIMARY KEY (mID),
+	FOREIGN KEY (team1) REFERENCES Team (teamNumber)
+		ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (team2) REFERENCES Team (teamNumber)
+		ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+DROP TABLE Plays;
+DROP TABLE `Match`;
+DROP TABLE Team;
+DROP TABLE Player;
+
+INSERT INTO Team VALUES()
+
+
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (1, "jeff1", 50);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (2, "jeff2", 100);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (3, "jeff3", 73);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (4, "jeff4", 204);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (5, "jeff5", 450);
+
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (6, "jeff6", 30);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (7, "jeff7", 150);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (8, "jeff8", 150);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (9, "jeff9", 139);
+INSERT INTO Player (`pID`, `username`, `elo`) VALUES (10, "jeff10", 182);
+
+UPDATE `Match` SET endTime = CURRENT_TIMESTAMP;
+
+
+SELECT username, elo, t.teamNumber FROM Player as pl, Plays as p, Team as t
+WHERE pl.pID = p.pID and p.teamNumber = t.teamNumber;

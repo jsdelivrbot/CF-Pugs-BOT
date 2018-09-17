@@ -1,0 +1,11 @@
+CURRENT TODOs:
+- Create database model
+- Create MYSQL Wrapper kinda
+- Create Algorithm for Matching teams Test and Revise
+- Allow users to change there username
+- Users able to leave queue
+- Users remove from queue when gone offline
+- Impement Map voting system or random map gen
+- If MatchMaking is active don't let people queue
+
+Make a more modular Command Reading Subsystem
