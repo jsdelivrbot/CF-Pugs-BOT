@@ -2,13 +2,19 @@ const Discord = require('discord.js');
 var mysql = require('mysql');
 const bot = new Discord.Client();
 
-// Random Shit
+// Variables for Server Specific Text Channels
 const registerChannel = "test";
 const lobbyChannel = "test";
+
+
 var PUGQueue = new Array();
 
 
 bot.on('message', (message) =>{
+
+    
+
+
 
     // For Users Who want to Register
     if(message.channel.name == registerChannel && message.content == "=register"){
