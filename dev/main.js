@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 var mysql = require('mysql');
+var decode = require('./util/cmddecoder');
 const bot = new Discord.Client();
 
 // Variables for Server Specific Text Channels
@@ -12,7 +13,15 @@ var PUGQueue = new Array();
 
 bot.on('message', (message) =>{
 
-    
+
+    if(message.content.charAt(0) == "="){
+        var Command = message.content.substring(1);
+        var Parameters = Command.split(" ");
+
+        console.log(message.author.username + " Entered Command: " + Command);
+
+        decode.execCommand(Parameters);
+    }
 
 
 
