@@ -8,8 +8,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/sorttest.js"
+            "name": "CFPugs",
+            "program": "${workspaceFolder}/main.js"
         }
     ]
 }
