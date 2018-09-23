@@ -1,3 +1,4 @@
+// Mysql Connection Detail
 var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "192.168.1.64",
@@ -9,66 +10,64 @@ var con = mysql.createConnection({
 
 var PUGQueue = new Array();
 var ELOs = new Array();
-con.connect(function(err) {
-});
-module.exports = {
-    add: function(playerID){
-        
-        con.query("SELECT username FROM Player WHERE pID = ?", [playerID], function (err, result, fields) {
-            if (err) throw err;
+var isCaptainsMode = false; // Captain team picking is not available yet, this is just temporary
 
-            if(result[0] != undefined){
-                PUGQueue.push(playerID);
-                //message.reply("Added to the Queue ["+PUGQueue.length+"/10]");
-                console.log("Added to the Queue ["+PUGQueue.length+"/10]");
-                
-                if(PUGQueue.length == 10){
-                   loadELOs();
+con.connect(function(err) {});
+module.exports = {
+    add: function(playerID, message){
+        if(!PUGQueue.includes(playerID)){
+            con.query("SELECT username FROM Player WHERE pID = ?", [playerID], function (err, result, fields) {
+                if (err) throw err;
+
+                if(result[0] != undefined){
+                    PUGQueue.push(playerID);
+                    replyMessage(message, "**Added to the Queue ["+PUGQueue.length+"/10]**");
+                    console.log("Added to the Queue ["+PUGQueue.length+"/10]");
+                    
+                    if(PUGQueue.length == 10){
+                        if(!isCaptainsMode)
+                            loadELOs();
+
+                    }
+                }else{
+                    replyMessage(message, "**You Must Register Before you can Join the Queue. !Register \"ign\" in #Register-here**");
                 }
-            }else{
-                message.reply("You Must Register Before you can Join the Queue. !Register \"ign\" in #Register-here");
-            }
-            
-        });
+                
+            });
+        }else{
+            replyMessage(message, "**You are already in the Queue ["+PUGQueue.length+"/10]**");
+        }
     },
-    remove: function(playerID){
-        PUGQueue.remove(playerID);
+    remove: function(playerID, message){
+        if(PUGQueue.includes(playerID)){
+            PUGQueue.pop(playerID);
+            replyMessage(message, "**You have been removed from the Queue ["+PUGQueue.length+"/10]**");
+        }else{
+            replyMessage(message, "**You're not currently in the Queue ["+PUGQueue.length+"/10]**");
+        }
+        
     }
 }
 
 function loadELOs(){
-    con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[0]], function (err, result, fields) {
-        ELOs.push(result[0].elo);
-        con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[1]], function (err, result, fields) {
+
+    var elosLoaded = 0;
+
+    var getELO = function(Player){
+        con.query("SELECT elo FROM Player WHERE pID = ?;", [Player], function (err, result, fields) {
             ELOs.push(result[0].elo);
-            con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[2]], function (err, result, fields) {
-                ELOs.push(result[0].elo);
-                con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[3]], function (err, result, fields) {
-                    ELOs.push(result[0].elo);
-                    con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[4]], function (err, result, fields) {
-                        ELOs.push(result[0].elo);
-                        con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[5]], function (err, result, fields) {
-                            ELOs.push(result[0].elo);
-                            con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[6]], function (err, result, fields) {
-                                ELOs.push(result[0].elo);
-                                con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[7]], function (err, result, fields) {
-                                    ELOs.push(result[0].elo);
-                                    con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[8]], function (err, result, fields) {
-                                        ELOs.push(result[0].elo);
-                                        con.query("SELECT elo FROM Player WHERE pID = ?;", [PUGQueue[8]], function (err, result, fields) {
-                                            ELOs.push(result[0].elo);
-                                            console.log("Starting MatchMaking");
-                                            CreateMatch();
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+
+            elosLoaded++;
+
+            if(elosLoaded == 10)
+                CreateMatch();
         });
-    });
+    };
+
+    // Using a CallBack Method so that we can compute the results of the queries before we continue to the next step
+    for(var x = 0; x < 10; x++)
+        getELO(PUGQueue[x]);
+
 }
 
 function CreateMatch(){
@@ -229,4 +228,11 @@ function fairnessStep(ELODiff){
         PUGQueue[bestDiffIdx + 1] = temp;
         console.log("Compelted Fairness Step");
     }
+}
+
+function replyMessage(message, content){
+    message.reply({embed: {
+        color: 3447003,
+        description: content
+    }});
 }

@@ -1,12 +1,9 @@
 const Discord = require('discord.js');
 var cmdhandler = require('./util/cmdhandler');
-var sqlhandler = require('./util/mysqlhandler');
-var matchhandler = require('./util/matchhandler');
+
 const bot = new Discord.Client();
 
 // Variables for Server Specific Text Channels
-const registerChannel = "test";
-const lobbyChannel = "test";
 
 
 bot.on('message', (message) =>{
@@ -15,10 +12,10 @@ bot.on('message', (message) =>{
     if(message.content.charAt(0) == "="){
         var Command = message.content.substring(1);
         var Parameters = Command.split(" ");
+        console.log(message.author.username + " entered command: =" + Command);
 
-        console.log(message.author.username + " Entered Command: " + Command);
+        cmdhandler.execCommand(Parameters, message);
 
-        var cmd = cmdhandler.setupCommand(Parameters);
     }
 
 
