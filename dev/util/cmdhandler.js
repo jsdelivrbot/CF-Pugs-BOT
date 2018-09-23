@@ -25,6 +25,8 @@ var con = mysql.createConnection({
          - if parameter1 is optional then we will check if it is undefined
          - (ADD MORE DETAILS)
         'layout': the correct format of the command
+        'onSuccess': is a function that will be exectued after the sql statement in onSuccess() function
+        'func': if the command is more complicated than just one query. Use this. Points to specialCommand() function
     }
 */
 
@@ -197,7 +199,7 @@ function onSuccess(cmd, message, Parameters){
 function specialCommand(cmd, message, Parameters){
     switch(cmd.func){
         case 'getQueue':
-
+            matchhandler.displayQueue(message);
             break;
         case 'joinQueue':
             matchhandler.add(message.author.id, message);

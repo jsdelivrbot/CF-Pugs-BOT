@@ -14,6 +14,13 @@ var isCaptainsMode = false; // Captain team picking is not available yet, this i
 
 con.connect(function(err) {});
 module.exports = {
+    displayQueue: function(message){
+             var tempMessage = "__**Current Queue ["+PUGQueue.length+"/10]**__";
+        for(var x = 0; x < PUGQueue.length; x++){
+            tempMessage += "\n"+(x+1)+". <@"+PUGQueue[x]+">";
+        }
+        replyMessage(message, tempMessage);
+    },
     add: function(playerID, message){
         if(!PUGQueue.includes(playerID)){
             con.query("SELECT username FROM Player WHERE pID = ?", [playerID], function (err, result, fields) {
