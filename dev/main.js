@@ -4,7 +4,9 @@ var cmdhandler = require('./util/cmdhandler');
 const bot = new Discord.Client();
 
 // Variables for Server Specific Text Channels
-
+bot.on('ready', () => {
+    console.log('CFPugs - ELO Now Active');
+});
 
 bot.on('message', (message) =>{
 
@@ -19,12 +21,19 @@ bot.on('message', (message) =>{
 
 });
 
-
-
+bot.on("presenceUpdate", (oldMember, newMember) => {
+    if(oldMember.presence.status !== newMember.presence.status){
+        if(newMember.presence.status == "offline"){
+            cmdhandler.isOfflineinQueue(newMember);
+        }
+        if(newMember.presence.status == "idle"){
+            cmdhandler.isAwayinQueue(newMember);
+        }
+    }
+});
 
 // On exit Close Connections with MySQL and Discord
 process.on('exit', (code) => {
-    message.reply("Pce");
     bot.disconnect;
     con.end(function(err) {
 

@@ -28,6 +28,10 @@ var con = mysql.createConnection({
         'onSuccess': is a function that will be exectued after the sql statement in onSuccess() function
         'func': if the command is more complicated than just one query. Use this. Points to specialCommand() function
     }
+
+
+    Reason For making the cmdList:
+        I want to create a framework that allows me to easily add more commands for the bot.
 */
 
 var cmdList = {
@@ -90,14 +94,14 @@ var admincmdList = {
     'modifygame' :{
         'args': 2,
         'textchannel': 'any',
-        'sql' : 'INSERT INTO Player (pID, username) VALUES (?, ?);'
+        'sql' : ''
     }
 };
 
 module.exports = {
     /* execCommand:
-        Recieves an array of parameters entered from
-        ex: [command, args...]
+        Recieves an array of parameters on discord message
+        ex: [=command args...]
         
         //TODO: Implement isAdmin for admin commands
     */
@@ -108,6 +112,13 @@ module.exports = {
         }else{
             replyMessage(message,"Command \"=" + Parameters[0] + "\" Doesn't Exist");
         }
+    },
+
+    isOfflineinQueue: function(player){
+        matchhandler.isOfflineinQueue(player);
+    },
+    isAwayinQueue: function(player){
+        matchhandler.isAwayinQueue(player);
     }
 }
 
@@ -187,9 +198,9 @@ function translateSQLargs(sqlarg,message,Parameters){
 function onSuccess(cmd, message, Parameters){
     switch(cmd.onSuccess){
         case 'RegisterUser':
-            console.log("Registered User "+ message.author.username);
+            console.log("Registered User "+ Parameters[1]);
             replyMessage(message, "**Registered Player: **`"+Parameters[1]+"`");
-            message.guild.members.get(message.author.id).setNickname("[100] "+message.author.username);
+            message.guild.members.get(message.author.id).setNickname("[100] "+Parameters[1]);
         break;
         default:
             return null;

@@ -7,6 +7,7 @@ var con = mysql.createConnection({
     database: "CFPugs"
 });
 
+const lobbyChannelID = "488205199446638593"; // NEED TO CHANGE WHEN Put into production
 
 var PUGQueue = new Array();
 var ELOs = new Array();
@@ -53,7 +54,38 @@ module.exports = {
             replyMessage(message, "**You're not currently in the Queue ["+PUGQueue.length+"/10]**");
         }
         
+    },
+    isOfflineinQueue: function(player){
+        if(PUGQueue.includes(player.id)){
+            PUGQueue.pop(player.id);
+            player.client.channels.get(lobbyChannelID).send({
+                embed:{
+                    color: 3447003,
+                    description: "<@"+player.id+"> **Went Offline. Removed From Queue ["+PUGQueue.length+"/10]**"
+                }
+            });
+            console.log(player.user.tag + " Removed From Queue ["+PUGQueue.length+"/10] For going offline");
+        }
+    },
+    isAwayinQueue: function(player){
+        if(PUGQueue.includes(player.id)){
+            PUGQueue.pop(player.id);
+            player.client.channels.get(lobbyChannelID).send({
+                embed:{
+                    color: 3447003,
+                    description: "<@"+player.id+"> **Went Idle. Removed From Queue ["+PUGQueue.length+"/10]**"
+                }
+            });
+            player.user.send({
+                embed:{
+                    color: 3447003,
+                    description: "You've Been Removed From the CF Pugs Queue because your discord status is now Idle"
+                }
+            });
+            console.log(player.user.tag + " Removed From Queue ["+PUGQueue.length+"/10] For being Idle");
+        }
     }
+
 }
 
 function loadELOs(){
@@ -106,7 +138,7 @@ function CreateMatch(){
     }
 
     // Now, having the Elo's sorted we must approach the Players Team Assignment based on Elo
-    // After Assigning sides. Complete Fairness Step (Switching Pair with Highest Difference in Elo)
+    // After Assigning sides. Complete Fairness Step (Switching Pair with best Difference in Elo) ** WORK IN PROGRESS **
     // Team 1 is Idx 0-4 of PUGQueue
     // Team 2 is Idx 5-9 of PUGQueue
     console.log("Starting Team Assignment")

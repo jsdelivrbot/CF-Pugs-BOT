@@ -3,6 +3,11 @@ CURRENT TODOs:
 / Need to Refactor MatchMaking Algorithim
 / Make a more modular Command Reading Subsystem
 - Allow users to change there username
-- Users remove from queue when gone offline
 - Impement Map voting system or random map gen
 - Check to see if player is already in a game before they join a queue
+
+
+
+
+- Get a different 2Auth Before putting into Production
+- Change Text Channel ID for lobby in /dev/util/matchhandler.js
