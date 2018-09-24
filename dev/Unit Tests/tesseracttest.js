@@ -8,6 +8,8 @@ Things Learned From Testing:
   - 8's sometimes showup as B's on the OCR. So we will have to deal with this in the kda section
   - /'s sometimes showup as 1's on the OCR.
   - 8's sometimes showup as 13's on the OCR.
+  - When Calculating the Scores, Before Submiting it to the DB Confirm them with the users
+    - Who ever Dissagrees with the score will have their kda / mvp eliminated from the game
 
 */
 
@@ -72,49 +74,16 @@ var textPos = {
     RGB 178, 178, 176
 */
 
-
-
-
-
 // open a file called "lenna.png"
-// Jimp.read('../../img/score.bmp', (err, img) => {
-//   if (err) throw err;
-//   //Player One Image
-//   img
-//     .crop(121,125,315,25)
-//     .resize(630, 50) // resize
-//     .quality(100) // set JPEG quality
-//     .greyscale() // set greyscale
-//     //.contrast(.75)
-//     .dither565()
-//     .normalize()
-//     //.invert()
-//     .write('../../img/player1.jpg'); // save
-
-//       // Create tesseract in main.
-//   Tesseract.recognize('../../img/player1.jpg', {
-//     lang:  path.resolve(__dirname, '../tesseract/lang/eng')
-//     })
-//     .then(function(result){
-//         console.log(result.text)
-//   }).catch((error) => {
-//   console.log(error)
-//   })
-//   .finally(e => {
-//   console.log('finally\n')
-//   process.exit()
-//   });
-// });
-
-// open a file called "lenna.png"
+var pCount = 0;
 var promise1 = new Promise(function(resolve, reject) {
   
-    readOffScoreBoard(textPos.ScoreforBL);
+    readOffScoreBoard(textPos.ScoreforBL, resolve);
 
     for(var x = 0; x < 10; x++){
-      readOffScoreBoard(textPos["p"+(x+1)].name);
-      readOffScoreBoard(textPos["p"+(x+1)].kda);
-      readOffScoreBoard(textPos["p"+(x+1)].mvp);
+      readOffScoreBoard(textPos["p"+(x+1)].name, resolve);
+      readOffScoreBoard(textPos["p"+(x+1)].kda, resolve);
+      readOffScoreBoard(textPos["p"+(x+1)].mvp, resolve);
     }
 });
 
@@ -124,7 +93,7 @@ promise1.then((successMessage) => {
 
 console.log(promise1);
 
-function readOffScoreBoard(pos){
+function readOffScoreBoard(pos, resolve){
   Jimp.read('../../img/score.bmp', (err, img) => {
     if (err) throw err;
     //Player two Image
@@ -136,7 +105,7 @@ function readOffScoreBoard(pos){
 
       for(var x = 0; x < img.bitmap.width; x++){
         for(var y = 0; y < img.bitmap.height; y++){
-          if(img.getPixelColor(x,y) >= (Jimp.rgbaToInt(255, 255, 255, 255)) || img.getPixelColor(x,y) <= (Jimp.rgbaToInt(63, 63, 190,255))){
+          if(img.getPixelColor(x,y) <= (Jimp.rgbaToInt(63, 63, 190,255))){
             img.setPixelColor(0,x,y)
           }
         }
@@ -163,7 +132,11 @@ function readOffScoreBoard(pos){
       lang:  path.resolve(__dirname, '../tesseract/lang/eng')
       })
       .then(function(result){
-          console.log(pos.id + " Expects: "+pos.ActualValue+", Gives: "+result.text)
+          console.log(pos.id + " Expects: "+pos.ActualValue+", Gives: "+result.text);
+          pCount++;
+          if(pCount == 31){
+            resolve("Succeess");
+          }
     }).catch((error) => {
     console.log(error)
     });

@@ -119,6 +119,9 @@ module.exports = {
     },
     isAwayinQueue: function(player){
         matchhandler.isAwayinQueue(player);
+    },
+    getMatchHandler: function(){
+        return matchhandler;
     }
 }
 
