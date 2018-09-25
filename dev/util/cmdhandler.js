@@ -122,6 +122,9 @@ module.exports = {
     },
     getMatchHandler: function(){
         return matchhandler;
+    },
+    sqlDisconnect: function(){
+        con.destroy();
     }
 }
 

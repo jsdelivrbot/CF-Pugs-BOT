@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 var cmdhandler = require('./util/cmdhandler');
 var scorehandler = require('./util/scorehandler');
-
+var discordInfo = require('../../BotAuth.js')
 const bot = new Discord.Client();
 
 // Variables for Server Specific Text Channels
@@ -48,13 +48,10 @@ bot.on("presenceUpdate", (oldMember, newMember) => {
 // On exit Close Connections with MySQL and Discord
 process.on('exit', (code) => {
     bot.disconnect;
-    con.end(function(err) {
-
-    });
+    cmdhandler.sqlDisconnect();
 });
 
-
-bot.login("NDg4MTYzODA1MTMwNTIyNjU0.DnYQVg.kDfA9Sa-g4U5p_xxjRA0G9WP-UA");
+bot.login(discordInfo.getAuth());
 
 
 
