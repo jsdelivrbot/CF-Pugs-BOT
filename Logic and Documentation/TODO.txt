@@ -8,6 +8,5 @@ CURRENT TODOs:
 
 
 
-
-- Get a different 2Auth Before putting into Production
 - Change Text Channel ID for lobby in /dev/util/matchhandler.js
+- Check to see the Team switch for bl and gr sides

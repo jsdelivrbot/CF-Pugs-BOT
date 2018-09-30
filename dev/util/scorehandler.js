@@ -1,6 +1,7 @@
 const Tesseract = require('../tesseract')
 const path = require('path')
 var Jimp = require('jimp');
+var stringSimilarity = require('string-similarity');
 
 var textPos = {
     'ScoreforBL':{
@@ -59,20 +60,28 @@ var textPos = {
 }
 var pCount = 0;
 var score;
+var teamID1, teamID2;
+var matchUsers;
+var matchpIDs;
 var Player = {
     'name': [],
     'kda': [],
-    'mvp': []
+    'mvp': [],
+    'pid': []
 };
 
 module.exports = {
     completeMatch: function(cmdhandler, message, attachment, matchNumber){
-        // TODO: Check if match exists in db
-        // TODO: Check if player submiting match is a part of match
 
-    
+        var con = cmdhandler.getDBConnection();
 
-        var promise = new Promise(function(resolve, reject) {
+        var promise1 = new Promise(function(resolve, reject) {
+          loadTeamIDs(con, message, matchNumber, reject);
+          loadMatchDetails(con, cmdhandler, message, matchNumber, resolve);
+        }).then((successMessage) => {
+          console.log(successMessage);
+
+          var promise2 = new Promise(function(resolve, reject) {
             readOffScoreBoard(attachment.url, message, textPos.ScoreforBL, resolve);
 
             for(var x = 0; x < 10; x++){
@@ -80,34 +89,88 @@ module.exports = {
                 readOffScoreBoard(attachment.url, message, textPos["p"+(x+1)].kda, resolve);
                 readOffScoreBoard(attachment.url, message, textPos["p"+(x+1)].mvp, resolve);
             }
-        });
-
-        promise.then((successMessage) => {
+          }).then((successMessage) => {
             console.log(successMessage);
-            console.log(Player);
-            var rounds = score.split(":");
 
-            var scoreBoard = "**Match #" + matchNumber + " Results:**\n"
-                + "*Team 1:*\n";
-            for(var x = 0; x < 5; x++){
-                scoreBoard += Player.name[x] + " "+ Player.kda[x] + " " + Player.mvp[x] + "\n";
+            var rounds = score.split(":");
+            var scoreBoard = "";
+            var winningTeam;
+
+            if(parseInt(rounds[0]) > parseInt(rounds[1])){
+              winningTeam = 1;
+            }else if(parseInt(rounds[0]) < parseInt(rounds[1])){
+              winningTeam = 2;
+            }else{
+              winningTeam = 0;
             }
+
+            scoreBoard += "**Match #" + matchNumber + " Results:**\n"
+                + "*Team 1:*\n";
+
+            for(var x = 0; x < 5; x++){
+              // Comparing the read username from the scoreboard to the actuall usernames in the game. (Image Reading Isn't perfect)
+              var username = stringSimilarity.findBestMatch(Player.name[x], matchUsers).bestMatch;
+              if(username.rating >= 0.2){
+                //processPlayerScores(con, username, Player, team1, );
+                var stats = Player.kda[x].replace(/[^0-9/]/g, "");
+                stats = stats.split("/");
+                var mvp = Player.mvp[x].replace(/[^0-9/]/g, "");
+
+                if(stats.length == 3){
+                  scoreBoard += username.target + " K:"+ stats[0] + " D:"+stats[1]+" MVPs:" + mvp + "\n";
+                  var pID = matchpIDs[matchUsers.indexOf(username.target)];
+                  insertPlayerScores(con, message, pID, teamID1, parseInt(stats[0]), parseInt(stats[1]), parseInt(mvp));
+                }else{
+                  console.log("Player " + (x+1) + ": KDA Read Incorrectly. OCR Read:" + Player.kda[x]);
+                  scoreBoard += "Player " + (x+1) + ": KDA Read Incorrectly. OCR Read:" + Player.kda[x] +"\n";
+                }
+              }else{
+                console.log("Player " + (x+1) + ": Name Not Found. OCR Read: " + Player.name[x]);
+                scoreBoard += "Player " + (x+1) + ": Name Not Found. OCR Read: " + Player.name[x] +"\n";
+                scoreBoard += "*Please make sure you DON'T have a NameCard or a Username Colour equipped. It Fucks with the Image Recognition*\n";
+              }
+            }
+
             scoreBoard += "*Team 2:*\n";
             for(var x = 5; x < 10; x++){
-                scoreBoard += Player.name[x] + " "+ Player.kda[x] + " " + Player.mvp[x] + "\n";
+              var username = stringSimilarity.findBestMatch(Player.name[x], matchUsers).bestMatch;
+              if(username.rating >= 0.2){
+                //processPlayerScores(con, username, Player, team1, );
+                var stats = Player.kda[x].replace(/[^0-9/]/g, "");
+                stats = stats.split("/");
+                var mvp = Player.mvp[x].replace(/[^0-9/]/g, "");
+
+                if(stats.length == 3){
+                  scoreBoard += username.target + " K:"+ stats[0] + " D:"+stats[1]+" MVPs:" + mvp + "\n";
+                  var pID = matchpIDs[matchUsers.indexOf(username.target)];
+                  insertPlayerScores(con, message, pID, teamID2, parseInt(stats[0]), parseInt(stats[1]), parseInt(mvp));
+                }else{
+                  console.log("Player " + (x+1) + ": KDA Read Incorrectly. OCR Read:" + Player.kda[x]);
+                  scoreBoard += "Player " + (x+1) + ": KDA Read Incorrectly. OCR Read:" + Player.kda[x] +"\n";
+                }
+              }else{
+                console.log("Player " + (x+1) + ": Name Not Found. OCR Read: " + Player.name[x]);
+                scoreBoard += "Player " + (x+1) + ": Name Not Found. OCR Read: " + Player.name[x] +"\n";
+                scoreBoard += "*Please make sure you DON'T have a NameCard or a Username Colour equipped. It Fucks with the Image Recognition*\n";
+              }
             }
-            if(parseInt(rounds[0]) > parseInt(rounds[1])){
-                scoreBoard += "__**Team 1 Won!**__";
-            }else{
-                scoreBoard += "__**Team 2 Won!**__";
-            }
+            scoreBoard += "__**Team "+ winningTeam +" Won!**__\n";
+           
+
             message.reply({embed: {
                 color: 3447003,
                 description: scoreBoard
             }});
-        });
 
-        console.log(promise);
+          });
+          console.log(promise2);
+        }).catch((rejectMessage) =>{
+          message.reply({embed: {
+            color: 3447003,
+            description: rejectMessage
+        }});
+        });
+        console.log(promise1);
     }
 
 }
@@ -158,6 +221,7 @@ function readOffScoreBoard(image, message, pos, resolve){
                         Player.kda[pos.idx] = finaltext;
                     break;
                     case 'mvp':
+                        finaltext = finaltext.replace(/B/g, "8");
                         Player.mvp[pos.idx] = finaltext;
                 }
             }
@@ -165,13 +229,60 @@ function readOffScoreBoard(image, message, pos, resolve){
 
             pCount++;
             if(pCount == 31){
-            pCount = 0;
+              pCount = 0;
               resolve("Sucessful Scoreboard Read!");
             }
       }).catch((error) => {
       console.log(error)
       });
     });
-  }
+}
   
+function loadTeamIDs(con, message, matchNumber, reject){
+  con.query("SELECT team1, team2 FROM `Match` WHERE mID = ?;", [matchNumber], function (err, result, fields) {
+    if (err) replyMessage(message, err + " <@135649260141019136>"); // This is Jordems's Discord ID. (Developer)
+
+    if(result[0] == undefined){
+      reject("Match Doesn't Exist");
+    }else{
+      teamID1 = result[0].team1;
+      teamID2 = result[0].team2;
+    }
+
+
+    console.log("Loaded TeamIDs - Team1: "+ teamID1 + " Team2: "+ teamID2);
+  });
+}
+
+function loadMatchDetails(con, cmdhandler, message, matchNumber, resolve){
+
+   matchUsers = [];
+   matchpIDs = [];
+    con.query("SELECT DISTINCT username, p.pID FROM `Match` as m, Team as t, Plays as pl, Player as p WHERE m.mID = ? and (m.team1 = pl.teamNumber or m.team2 = pl.teamNumber)", [matchNumber], function (err, result, fields) {
+        if (err) replyMessage(message, err + " <@135649260141019136>"); // This is Jordems's Discord ID. (Developer)
+
+        if(result[0] != undefined){
+          for(var x = 0; x < 10; x++){
+              console.log("User loaded Locally: "+result[x].pID + " " + result[x].username);
+              matchUsers.push(result[x].username);
+              matchpIDs.push(result[x].pID);
+          }
+          resolve("Retrieved Players From Database");
+        }
+    });
+}
+
+function insertPlayerScores(con, message, pID, teamID, kills, deaths, mvps){
+  con.query("UPDATE Plays SET kills = ?, deaths = ?, mvps = ? WHERE pID = ? and teamNumber = ?", [kills,deaths,mvps,pID,teamID], function (err, result, fields) {
+    if (err) replyMessage(message, err + " <@135649260141019136>"); // This is Jordems's Discord ID. (Developer)
+    console.log("Inserted Player with details - pID:"+pID+" teamID:"+ teamID+" K:"+ kills+" D:"+ deaths +" mvp:"+ mvps)
+  });
+}
+
+function replyMessage(message, content){
+    message.reply({embed: {
+        color: 3447003,
+        description: content
+    }});
+}
   

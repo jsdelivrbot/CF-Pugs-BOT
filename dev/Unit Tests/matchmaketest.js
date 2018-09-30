@@ -190,13 +190,13 @@ function MatchMake(){
     con.query("INSERT INTO Team VALUES();", function (err, result) {
         team1 = result.insertId;
         for(var x = 0; x < 10; x+=2){
-            con.query("INSERT INTO Plays VALUES(?, ?);", [PUGQueue[x],team1], function (err, result) {});
+            con.query("INSERT INTO Plays(pID, teamNumber) VALUES(?, ?);", [PUGQueue[x],team1], function (err, result) {});
         }
 
         con.query("INSERT INTO Team VALUES();", function (err, result) {
             team2 = result.insertId;
             for(var x = 1; x < 10; x+=2){
-                con.query("INSERT INTO Plays VALUES(?, ?);", [PUGQueue[x],team2], function (err, result) {});
+                con.query("INSERT INTO Plays(pID, teamNumber) VALUES(?, ?);", [PUGQueue[x],team2], function (err, result) {});
             }
 
             // GRAB A RANDOM MAP FROM POOL. OR VOTE FOR MAP

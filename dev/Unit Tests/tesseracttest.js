@@ -1,7 +1,7 @@
 const Tesseract = require('../tesseract')
 const path = require('path')
 var Jimp = require('jimp');
- 
+var stringSimilarity = require('string-similarity');
 /*
 Things Learned From Testing:
   - Users must not have a custom name colour, or a namecard. As, it will completely reck the OCR
@@ -132,6 +132,7 @@ function readOffScoreBoard(pos, resolve){
       lang:  path.resolve(__dirname, '../tesseract/lang/eng')
       })
       .then(function(result){
+          console.log("Confidence Value: " + stringSimilarity.compareTwoStrings(pos.ActualValue, result.text));
           console.log(pos.id + " Expects: "+pos.ActualValue+", Gives: "+result.text);
           pCount++;
           if(pCount == 31){

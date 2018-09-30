@@ -123,6 +123,9 @@ module.exports = {
     getMatchHandler: function(){
         return matchhandler;
     },
+    getDBConnection: function(){
+        return con;
+    },
     sqlDisconnect: function(){
         con.destroy();
     }
